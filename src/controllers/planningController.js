@@ -8,6 +8,7 @@ import Recipe from '../models/Recipe.js';
 import Ingredient from '../models/Ingredient.js';
 import Menu from '../models/Menu.js';
 import Meal from '../models/Meal.js';
+import WeeklyPlanning from '../models/WeeklyPlanning.js';
 
 /**
  * Calcule automatiquement les ingrédients nécessaires pour une liste de plats et leurs portions prévues.
@@ -212,4 +213,53 @@ export const duplicateWeekMenu = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * Récupère le planning hebdomadaire, la suggestion du chef et les horaires officiels.
+ */
+export const getWeeklyPlanning = async (req, res, next) => {
+  try {
+    let planning = await WeeklyPlanning.findOne();
+    if (!planning) {
+      planning = await WeeklyPlanning.create({});
+    }
+    res.status(200).json({ success: true, planning });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Met à jour le planning hebdomadaire, la suggestion du chef et les horaires depuis le BackOffice.
+ */
+export const updateWeeklyPlanning = async (req, res, next) => {
+  try {
+    const { horaires, suggestion_chef, jours } = req.body;
+    let planning = await WeeklyPlanning.findOne();
+    if (!planning) {
+      planning = new WeeklyPlanning();
+    }
+
+    if (horaires) {
+      planning.horaires = { ...planning.horaires, ...horaires };
+    }
+    if (suggestion_chef) {
+      planning.suggestion_chef = { ...planning.suggestion_chef, ...suggestion_chef };
+    }
+    if (Array.isArray(jours)) {
+      planning.jours = jours;
+    }
+
+    await planning.save();
+
+    res.status(200).json({
+      success: true,
+      message: "L'ardoise et le planning hebdomadaire ont été mis à jour avec succès.",
+      planning
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 

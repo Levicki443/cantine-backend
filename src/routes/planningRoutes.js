@@ -8,12 +8,31 @@ import express from 'express';
 import {
   estimateIngredients,
   generatePurchaseList,
-  duplicateWeekMenu
+  duplicateWeekMenu,
+  getWeeklyPlanning,
+  updateWeeklyPlanning
 } from '../controllers/planningController.js';
 import { authenticate, authorize } from '../middlewares/authMiddleware.js';
 import { ROLES } from '../config/constants.js';
 
 const router = express.Router();
+
+/**
+ * @route   GET /api/planning/weekly
+ * @desc    Obtient le planning hebdomadaire, la suggestion du chef et les horaires (Public / Authentifié)
+ */
+router.get('/weekly', getWeeklyPlanning);
+
+/**
+ * @route   PUT /api/planning/weekly
+ * @desc    Met à jour le planning hebdomadaire et les horaires de service (Admin / Gestionnaire)
+ */
+router.put(
+  '/weekly',
+  authenticate,
+  authorize(ROLES.ADMIN, ROLES.GESTIONNAIRE),
+  updateWeeklyPlanning
+);
 
 /**
  * @route   POST /api/planning/estimate-ingredients
@@ -23,7 +42,7 @@ const router = express.Router();
 router.post(
   '/estimate-ingredients',
   authenticate,
-  authorize(ROLES.ADMIN, ROLES.MANAGER, ROLES.KITCHEN),
+  authorize(ROLES.ADMIN, ROLES.GESTIONNAIRE),
   estimateIngredients
 );
 
@@ -35,7 +54,7 @@ router.post(
 router.post(
   '/purchase-list',
   authenticate,
-  authorize(ROLES.ADMIN, ROLES.MANAGER),
+  authorize(ROLES.ADMIN, ROLES.GESTIONNAIRE),
   generatePurchaseList
 );
 
@@ -47,9 +66,8 @@ router.post(
 router.post(
   '/duplicate-week',
   authenticate,
-  authorize(ROLES.ADMIN, ROLES.MANAGER),
+  authorize(ROLES.ADMIN, ROLES.GESTIONNAIRE),
   duplicateWeekMenu
 );
 
 export default router;
-
